@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動くシンプルな音楽ゲーム</title>
+    <style>
+        /* --- CSS: デザインとレイアウト --- */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden; /* スクロール防止 */
+        }
+
+        #game-container {
+            width: 400px;
+            height: 600px;
+            background-color: #333;
+            border: 5px solid #000;
+            position: relative;
+            overflow: hidden; /* ノーツが上から降るのを隠す */
+        }
+
+        #score-display {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #ffcc00;
+        }
+
+        #judgement-line {
+            position: absolute;
+            bottom: 60px; /* ボタンの少し上 */
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: rgba(255, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        /* プレイヤーが操作するボタン（4レーン） */
+        .lane-button {
+            position: absolute;
+            bottom: 0;
+            height: 60px;
+            width: 25%;
+            font-size: 1.5em;
+            color: #fff;
+            border: 2px solid #000;
+            cursor: pointer;
+            box-sizing: border-box;
+            background-color: #007bff;
+            transition: background-color 0.1s; /* 色変化を滑らかに */
+            z-index: 20;
+        }
+
+        #button-1 { left: 0%; }
+        #button-2 { left: 25%; }
+        #button-3 { left: 50%; }
+        #button-4 { left: 75%; }
+
+        /* ボタン押下時のスタイル */
+        .lane-button.active {
+            background-color: #ff00ff; /* 押されたら色を変える */
+            transform: scale(0.95);
+        }
+
+        /* 落ちてくるノーツの基本スタイル */
+        .note {
+            position: absolute;
+            top: -20px; /* 最初は画面外の上 */
+            width: 90px; /* 4レーンに合わせて調整 */
+            height: 20px;
+            background-color: #00cc00;
+            border-radius: 4px;
+            border: 1px solid #fff;
+        }
+
+        /* ノーツのレーンごとの位置 */
+        .lane-1 { left: calc(0% + 5px); width: calc(25% - 10px); }
+        .lane-2 { left: calc(25% + 5px); width: calc(25% - 10px); }
+        .lane-3 { left: calc(50% + 5px); width: calc(25% - 10px); }
+        .lane-4 { left: calc(75% + 5px); width: calc(25% - 10px); }
+        
+        /* 判定メッセージ用 */
+        #judgement-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #ffea00;
+            opacity: 0;
+            transition: opacity 0.1s;
+            z-index: 30;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="score-display">スコア: <span id="current-score">0</span></div>
+
+    <div id="game-container">
+        <div id="judgement-text">PERFECT!</div>
+
+        <div id="judgement-line"></div>
+
+        <button class="lane-button" id="button-1" data-lane="1">A</button>
+        <button class="lane-button" id="button-2" data-lane="2">S</button>
+        <button class="lane-button" id="button-3" data-lane="3">D</button>
+        <button class="lane-button" id="button-4" data-lane="4">F</button>
+    </div>
+
+    <script>
+        /* --- JavaScript: ゲームロジック --- */
+
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('current-score');
+        const buttons = document.querySelectorAll('.lane-button');
+        const judgementLineY = 60; // 判定ラインのY座標 (CSSのbottomと同じ値)
+        const gameHeight = gameContainer.clientHeight;
+        const noteSpeed = 3; // 1フレームあたりのノーツの移動量 (ピクセル)
+        let score = 0;
+        let notes = []; // 現在画面上にあるノーツを格納する配列
+        let lastNoteTime = 0;
+        const noteInterval = 500; // ノーツを生成する間隔 (ミリ秒)
+
+        // 1. ノーツ生成関数
+        function createNote(lane) {
+            const note = document.createElement('div');
+            note.className = `note lane-${lane}`;
+            note.style.top = `-20px`; // 画面外からスタート
+            note.dataset.lane = lane;
+            gameContainer.appendChild(note);
+            notes.push(note);
+        }
+
+        // 2. ゲームループ（アニメーションとノーツ移動）
+        function gameLoop(currentTime) {
+            // ノーツの自動生成
+            if (currentTime - lastNoteTime > noteInterval) {
+                // 1〜4のランダムなレーンにノーツを生成
+                const randomLane = Math.floor(Math.random() * 4) + 1;
+                createNote(randomLane);
+                lastNoteTime = currentTime;
+            }
+
+            // ノーツの移動と削除
+            for (let i = notes.length - 1; i >= 0; i--) {
+                const note = notes[i];
+                // 現在のtop位置を取得してspeed分移動させる
+                let currentTop = parseInt(note.style.top, 10);
+                note.style.top = `${currentTop + noteSpeed}px`;
+
+                // 判定ラインを通過したらMiss（このサンプルでは自動削除）
+                if (currentTop > gameHeight - judgementLineY) {
+                    note.remove(); // HTMLから削除
+                    notes.splice(i, 1); // 配列からも削除
+                    // ここにMiss処理などを追加
+                }
+            }
+
+            requestAnimationFrame(gameLoop); // 次のフレームで再実行
+        }
+        
+        // 3. 判定処理（ボタンクリック/キー入力）
+        function checkHit(lane) {
+            let hit = false;
+            const hitZoneTop = gameHeight - judgementLineY - 30; // 判定エリアの上端
+            const hitZoneBottom = gameHeight - judgementLineY + 30; // 判定エリアの下端
+
+            // 該当レーンのノーツを探す
+            for (let i = notes.length - 1; i >= 0; i--) {
+                const note = notes[i];
+                if (parseInt(note.dataset.lane) === lane) {
+                    const noteTop = parseInt(note.style.top, 10);
+
+                    // ノーツが判定エリア内にあるかチェック
+                    if (noteTop >= hitZoneTop && noteTop <= hitZoneBottom) {
+                        // ヒット！
+                        score += 100;
+                        scoreDisplay.textContent = score;
+                        note.remove();
+                        notes.splice(i, 1);
+                        showJudgement('PERFECT!');
+                        hit = true;
+                        break; // 1つヒットしたらループ終了
+                    }
+                }
+            }
+            
+            // ヒットしなかった場合は空打ちなどの処理
+        }
+
+        // 4. ボタンの視覚的反応
+        function pressButton(lane) {
+            const button = document.querySelector(`#button-${lane}`);
+            if (button) {
+                button.classList.add('active');
+                checkHit(lane); // 判定処理を実行
+                setTimeout(() => {
+                    button.classList.remove('active');
+                }, 100); // 100ms後に色を元に戻す
+            }
+        }
+        
+        // 5. 判定テキストの表示
+        function showJudgement(text) {
+            const judgementText = document.getElementById('judgement-text');
+            judgementText.textContent = text;
+            judgementText.style.opacity = 1;
+            setTimeout(() => {
+                judgementText.style.opacity = 0;
+            }, 300);
+        }
+
+        // 6. イベントリスナーの設定
+        // マウス/タッチ操作
+        buttons.forEach(button => {
+            const lane = parseInt(button.dataset.lane);
+            button.addEventListener('mousedown', () => pressButton(lane));
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // タッチ操作によるブラウザの標準動作を無効化
+                pressButton(lane);
+            });
+        });
+
+        // キーボード操作
+        document.addEventListener('keydown', (e) => {
+            let laneToPress = 0;
+            switch(e.key.toUpperCase()) {
+                case 'A': laneToPress = 1; break;
+                case 'S': laneToPress = 2; break;
+                case 'D': laneToPress = 3; break;
+                case 'F': laneToPress = 4; break;
+            }
+            if (laneToPress !== 0 && !e.repeat) {
+                pressButton(laneToPress);
+            }
+        });
+        
+        // ゲーム開始！
+        requestAnimationFrame(gameLoop);
+        
+    </script> 
+
+</body>
+</html>
