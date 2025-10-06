@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルな音楽ゲーム</title>
+    <style>
+        /* ここにCSSを記述してデザインを整えます */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+        }
+
+        #game-container {
+            width: 400px;
+            height: 600px;
+            background-color: #333;
+            border: 5px solid #000;
+            position: relative; /* ノーツを絶対配置するために必要 */
+            overflow: hidden; /* ノーツがはみ出さないように */
+        }
+
+        #score-display {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+
+        #judgement-line {
+            position: absolute;
+            bottom: 20px; /* 判定ラインの位置 */
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-color: red;
+        }
+
+        /* 押すボタン（例として4レーン） */
+        .lane-button {
+            position: absolute;
+            bottom: 0;
+            height: 50px;
+            width: 25%; /* 4レーンなので25% */
+            background-color: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            opacity: 0.7;
+        }
+
+        #button-1 { left: 0%; }
+        #button-2 { left: 25%; }
+        #button-3 { left: 50%; }
+        #button-4 { left: 75%; }
+    </style>
+</head>
+<body>
+
+    <div id="score-display">スコア: <span id="current-score">0</span></div>
+
+    <div id="game-container">
+        <div id="judgement-line"></div>
+
+        <button class="lane-button" id="button-1">A</button>
+        <button class="lane-button" id="button-2">S</button>
+        <button class="lane-button" id="button-3">D</button>
+        <button class="lane-button" id="button-4">F</button>
+    </div>
+
+    <audio id="game-music" src="[音楽ファイルへのパス].mp3" preload="auto"></audio>
+
+    <script src="game.js"></script> 
+
+</body>
+</html>
