@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>リズムゲーム</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #game {
+      position: relative;
+      width: 400px;
+      height: 600px;
+      margin: 20px auto;
+      background: #222;
+      border: 2px solid #fff;
+    }
+
+    .lane {
+      position: absolute;
+      bottom: 0;
+      width: 100px;
+      height: 100%;
+      border-left: 1px solid #555;
+    }
+
+    .lane:nth-child(1) { left: 0; }
+    .lane:nth-child(2) { left: 100px; }
+    .lane:nth-child(3) { left: 200px; }
+    .lane:nth-child(4) { left: 300px; }
+
+    .note {
+      position: absolute;
+      width: 80px;
+      height: 20px;
+      background: #0ff;
+      left: 10px;
+      border-radius: 5px;
+    }
+
+    .hit-line {
+      position: absolute;
+      bottom: 100px;
+      height: 4px;
+      width: 100%;
+      background: red;
+    }
+
+    #score {
+      font-size: 24px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>リズムゲーム</h1>
+  <div id="score">Score: 0</div>
+  <div id="game">
+    <div class="lane" id="lane0"></div>
+    <div class="lane" id="lane1"></div>
+    <div class="lane" id="lane2"></div>
+    <div class="lane" id="lane3"></div>
+    <div class="hit-line"></div>
+  </div>
+
+  <script>
+    const lanes = [
+      document.getElementById('lane0'),
+      document.getElementById('lane1'),
+      document.getElementById('lane2'),
+      document.getElementById('lane3'),
+    ];
+
+    const keys = ['ArrowLeft', 'ArrowDown', 'ArrowUp', 'ArrowRight'];
+    const hitLineY = 500;
+    let score = 0;
+
+    function createNote(laneIndex, delay) {
+      const note = document.createElement('div');
+      note.className = 'note';
+      note.style.bottom = '600px';
+      note.dataset.lane = laneIndex;
+      note.dataset.hit = 'false';
+      lanes[laneIndex].appendChild(note);
+
+      const start = Date.now();
+      const interval = setInterval(() => {
+        const elapsed = Date.now() - start;
+        const pos = 600 - elapsed * 0.3; // speed
+        note.style.bottom = pos + 'px';
+
+        if (pos < -20) {
+          clearInterval(interval);
+          lanes[laneIndex].removeChild(note);
+        }
+      }, 16);
+    }
+
+    function randomNotes() {
+      setInterval(() => {
+        const lane = Math.floor(Math.random() * 4);
+        createNote(lane);
+      }, 800);
+    }
+
+    function judge(laneIndex) {
+      const notes = lanes[laneIndex].getElementsByClassName('note');
+      for (let note of notes) {
+        if (note.dataset.hit === 'true') continue;
+
+        const noteY = parseFloat(note.style.bottom);
+        const diff = Math.abs(noteY - hitLineY);
+
+        if (diff < 30) {
+          note.dataset.hit = 'true';
+          note.style.background = 'lime';
+          if (diff < 10) {
+            score += 300; // Perfect
+          } else {
+            score += 100; // Good
+          }
+          document.getElementById('score').textContent = 'Score: ' + score;
+          return;
+        }
+      }
+      // Miss
+      score -= 50;
+      document.getElementById('score').textContent = 'Score: ' + score;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const index = keys.indexOf(e.key);
+      if (index !== -1) {
+        judge(index);
+      }
+    });
+
+    // ゲーム開始
+    randomNotes();
+  </script>
+</body>
+</html>
