@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>15パズルゲーム</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+    }
+    h1 {
+      margin-top: 30px;
+    }
+    #puzzle {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-template-rows: repeat(4, 80px);
+      gap: 5px;
+      margin: 40px auto;
+      width: fit-content;
+    }
+    .tile {
+      width: 80px;
+      height: 80px;
+      line-height: 80px;
+      background-color: #3498db;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .empty {
+      background-color: transparent;
+      cursor: default;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>15パズルゲーム</h1>
+  <div id="puzzle"></div>
+  <button onclick="shuffle()">シャッフル</button>
+
+  <script>
+    const puzzle = document.getElementById('puzzle');
+    let tiles = [];
+
+    function createTiles() {
+      tiles = [...Array(15).keys()].map(x => x + 1);
+      tiles.push(null); // 空白
+      render();
+    }
+
+    function render() {
+      puzzle.innerHTML = '';
+      tiles.forEach((tile, i) => {
+        const div = document.createElement('div');
+        if (tile) {
+          div.className = 'tile';
+          div.textContent = tile;
+          div.onclick = () => moveTile(i);
+        } else {
+          div.className = 'tile empty';
+        }
+        puzzle.appendChild(div);
+      });
+    }
+
+    function moveTile(index) {
+      const emptyIndex = tiles.indexOf(null);
+      const validMoves = [ -1, 1, -4, 4 ];
+      const canMove = validMoves.some(offset => {
+        const target = emptyIndex + offset;
+        return target === index &&
+               !(offset === -1 && index % 4 === 3) &&
+               !(offset === 1 && index % 4 === 0);
+      });
+
+      if (canMove) {
+        [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
+        render();
+        checkWin();
+      }
+    }
+
+    function shuffle() {
+      do {
+        for (let i = tiles.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+        }
+      } while (!isSolvable(tiles));
+      render();
+    }
+
+    function isSolvable(arr) {
+      let invCount = 0;
+      for (let i = 0; i < 15; i++) {
+        for (let j = i + 1; j < 16; j++) {
+          if (arr[i] && arr[j] && arr[i] > arr[j]) invCount++;
+        }
+      }
+      const row = Math.floor(arr.indexOf(null) / 4);
+      return (invCount + row) % 2 === 0;
+    }
+
+    function checkWin() {
+      for (let i = 0; i < 15; i++) {
+        if (tiles[i] !== i + 1) return;
+      }
+      alert('クリア！おめでとう！');
+    }
+
+    createTiles();
+  </script>
+</body>
+</html>
