@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ナンプレ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+
+    td {
+      border: 1px solid #999;
+      width: 40px;
+      height: 40px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      font-size: 18px;
+      border: none;
+      outline: none;
+    }
+
+    /* 太い枠線 */
+    td:nth-child(3), td:nth-child(6) {
+      border-right: 2px solid black;
+    }
+
+    tr:nth-child(3) td, tr:nth-child(6) td {
+      border-bottom: 2px solid black;
+    }
+
+    .bold-border {
+      border: 2px solid black !important;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ナンプレ</h1>
+  <table id="sudoku-board">
+    <tbody>
+      <!-- JavaScriptで生成 -->
+    </tbody>
+  </table>
+
+  <button onclick="checkSudoku()">チェック</button>
+  <p id="message"></p>
+
+  <script>
+    const board = document.querySelector('#sudoku-board tbody');
+
+    // 盤面を生成
+    for (let row = 0; row < 9; row++) {
+      const tr = document.createElement('tr');
+      for (let col = 0; col < 9; col++) {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.maxLength = 1;
+        input.pattern = '[1-9]';
+        input.dataset.row = row;
+        input.dataset.col = col;
+
+        // 入力制限（1〜9以外は無効）
+        input.addEventListener('input', (e) => {
+          const val = e.target.value;
+          if (!/^[1-9]?$/.test(val)) {
+            e.target.value = '';
+          }
+        });
+
+        td.appendChild(input);
+        tr.appendChild(td);
+      }
+      board.appendChild(tr);
+    }
+
+    function checkSudoku() {
+      const grid = Array.from({ length: 9 }, () => Array(9).fill(0));
+      let valid = true;
+
+      // 値を取得
+      document.querySelectorAll('input').forEach(input => {
+        const row = parseInt(input.dataset.row);
+        const col = parseInt(input.dataset.col);
+        const val = parseInt(input.value);
+        grid[row][col] = isNaN(val) ? 0 : val;
+      });
+
+      // 行・列・ブロックチェック
+      const isValidGroup = (nums) => {
+        const seen = new Set();
+        for (const n of nums) {
+          if (n === 0) continue;
+          if (seen.has(n)) return false;
+          seen.add(n);
+        }
+        return true;
+      };
+
+      for (let i = 0; i < 9; i++) {
+        const row = grid[i];
+        const col = grid.map(r => r[i]);
+        if (!isValidGroup(row) || !isValidGroup(col)) {
+          valid = false;
+          break;
+        }
+      }
+
+      // 3x3 ブロック
+      for (let r = 0; r < 9; r += 3) {
+        for (let c = 0; c < 9; c += 3) {
+          const block = [];
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              block.push(grid[r + i][c + j]);
+            }
+          }
+          if (!isValidGroup(block)) {
+            valid = false;
+          }
+        }
+      }
+
+      document.getElementById('message').textContent = valid
+        ? '正しいナンプレです！'
+        : '間違いがあります。';
+    }
+  </script>
+</body>
+</html>
