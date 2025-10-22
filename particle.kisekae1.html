@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>簡単着せ替えゲーム</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    #character {
+      position: relative;
+      width: 300px;
+      height: 500px;
+      margin: 0 auto 20px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+    }
+    #base {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    .clothing {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    #controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    button {
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>簡単着せ替えゲーム</h1>
+
+  <div id="character">
+    <!-- ベースのキャラ -->
+    <img id="base" src="https://i.imgur.com/O1YpRly.png" alt="キャラクター" />
+    <!-- 服やアクセサリーを重ねる -->
+    <img id="clothing" class="clothing" src="" alt="服" />
+  </div>
+
+  <div id="controls">
+    <button onclick="changeClothing('')">服なし</button>
+    <button onclick="changeClothing('https://i.imgur.com/yxdRRM9.png')">赤い服</button>
+    <button onclick="changeClothing('https://i.imgur.com/98IGmR8.png')">青い服</button>
+    <button onclick="changeClothing('https://i.imgur.com/Kv5QrNI.png')">黄色い服</button>
+  </div>
+
+  <script>
+    function changeClothing(url) {
+      const clothingImg = document.getElementById('clothing');
+      clothingImg.src = url;
+    }
+  </script>
+
+</body>
+</html>
