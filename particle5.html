@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>15パズルゲーム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      padding-top: 30px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    #puzzle {
+      width: 320px;
+      height: 320px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+
+    .tile {
+      width: 75px;
+      height: 75px;
+      background: #3498db;
+      color: white;
+      font-size: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .empty {
+      background: #ccc;
+      cursor: default;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>15パズル</h1>
+<div id="puzzle"></div>
+<button onclick="shuffle()">シャッフル</button>
+
+<script>
+  const puzzle = document.getElementById("puzzle");
+  let tiles = [];
+
+  function init() {
+    tiles = [];
+    for (let i = 1; i <= 15; i++) {
+      tiles.push(i);
+    }
+    tiles.push(null); // 空白マス
+    render();
+  }
+
+  function render() {
+    puzzle.innerHTML = "";
+    tiles.forEach((tile, index) => {
+      const div = document.createElement("div");
+      div.className = "tile";
+      if (tile === null) {
+        div.classList.add("empty");
+      } else {
+        div.textContent = tile;
+        div.addEventListener("click", () => move(index));
+      }
+      puzzle.appendChild(div);
+    });
+  }
+
+  function move(index) {
+    const emptyIndex = tiles.indexOf(null);
+    const validMoves = [ 
+      index - 1, index + 1, 
+      index - 4, index + 4 
+    ];
+
+    if (validMoves.includes(emptyIndex) &&
+        isAdjacent(index, emptyIndex)) {
+      [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]];
+      render();
+    }
+  }
+
+  function isAdjacent(i1, i2) {
+    const row1 = Math.floor(i1 / 4);
+    const col1 = i1 % 4;
+    const row2 = Math.floor(i2 / 4);
+    const col2 = i2 % 4;
+    return (Math.abs(row1 - row2) + Math.abs(col1 - col2)) === 1;
+  }
+
+  function shuffle() {
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+    }
+    render();
+  }
+
+  init();
+</script>
+
+</body>
+</html>
